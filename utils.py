@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.random as rdm
-from d2l import torch as d2l
+import tools as d2l
 from crowd import crowd
 from crowd_E import crowd_E
 
@@ -23,7 +23,8 @@ def distance(p1, p2):
     """
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=2.82, rate=0.5, Animator=False):
+def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=2.82, rate=0.5, 
+            Animator=False):
     data_container = []
     if isinstance(c, crowd_E):
         legend = ['S', 'I', 'R', 'E']
