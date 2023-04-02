@@ -23,19 +23,26 @@ def distance(p1, p2):
     """
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=2.82, rate=0.5, animator=False):
+def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=2.82, rate=0.5, Animator=False):
     data_container = []
-    if isinstance(c, crowd):
-        legend = ['S', 'I', 'R']
-    else:
+    if isinstance(c, crowd_E):
         legend = ['S', 'I', 'R', 'E']
+    else:
+        legend = ['S', 'I', 'R']
+
+    if Animator == True:
+        animator = d2l.Animator(xlabel='Days', ylabel='Number of People', legend=legend, xlim=[0, days - 1], ylim=[0, c.size])
 
     c.initI(init)
     for i in range(days):
-        print(i)
+        #print(i)
         c.Move()
         c.Forward(rate=rate, dis=dis)
-        data_container.append(c.getData())
+        data = c.getData()
+        if Animator == True:
+            animator.add(i, data)
+
+        data_container.append(data)
 
 
     return data_container
