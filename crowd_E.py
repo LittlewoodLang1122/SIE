@@ -69,7 +69,7 @@ class crowd_E(crowd.crowd):
 
         
 
-    def Move(self, rate=0.2):
+    def Move(self):
         """
         第二天每个人都开始走，同时感染者感染的天数+1
         """
@@ -110,13 +110,9 @@ class crowd_E(crowd.crowd):
                 self.data[2, e] = 0
                 continue
 
-            ## 不然就抽签去当感染者
-            prob = rdm.rand(1)
-            if prob > rate:
-                ## 如果命好就无事发生，你还是密接，但是你成为密接的天数要加一
-                self.data[3,e] += 1
-                continue
-            else:
-                ## 否则就变成感染者
-                self.data[3,e] = 0
-                self.data[2,e] = 1
+    def getData(self):
+        idx_0 = np.argwhere(self.data[2,:] == 0).squeeze().size
+        idx_1 = np.argwhere(self.data[2,:] == 1).squeeze().size
+        idx_2 = np.argwhere(self.data[2,:] == 2).squeeze().size
+        idx_3 = np.argwhere(self.data[2,:] == 3).squeeze().size
+        return idx_0, idx_1, idx_2, idx_3

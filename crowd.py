@@ -50,7 +50,7 @@ class crowd():
         """
         self.data[2, 0:(size)] = 1
 
-    def Foward(self, rate=0.5, dis=1.42):
+    def Forward(self, rate=0.5, dis=1.42):
         """
         在某天晚上进行清算，对当前位置的人判断是否感染，因为 I 只会感染 S 所以不考虑 R
         """
@@ -122,7 +122,15 @@ class crowd():
         获取特定的人群
         """
         idx = np.argwhere(self.data[2,:] == status).squeeze()
-        cwd = crowd(idx.shape[0], mod=self.mod)
+        if idx.size == 0:
+            return None
+        cwd = crowd(idx.size, mod=self.mod)
         cwd.data = self.data[:, idx]
 
         return cwd
+    
+    def getData(self):
+        idx_0 = np.argwhere(self.data[2,:] == 0).squeeze().size
+        idx_1 = np.argwhere(self.data[2,:] == 1).squeeze().size
+        idx_2 = np.argwhere(self.data[2,:] == 2).squeeze().size
+        return idx_0, idx_1, idx_2
