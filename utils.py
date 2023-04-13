@@ -23,7 +23,7 @@ def distance(p1, p2):
     """
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=2.82, rate=0.5, 
+def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=5.01, rate=0.7, 
             Animator=False):
     data_container = []
     if isinstance(c, crowd_E):
@@ -39,7 +39,7 @@ def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=2.82, rate=0.5,
         #print(i)
         c.Move()
         c.Forward(rate=rate, dis=dis)
-        if c.process == 1:
+        if c.process == 1:##version1.1：没有感染者后就停下
             break
         data = c.getData()
         if Animator == True:
