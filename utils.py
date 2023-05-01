@@ -23,9 +23,11 @@ def distance(p1, p2):
     """
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=5.01, rate=0.7, 
+def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=5.01, rate=0.5, 
             Animator=False):
     data_container = []
+    ## version1.2:target_ctr保存的是每天的c的所有data，targer_ctr[i]为调取第i+1天的数据组 i=0~49
+    target_ctr = {} 
     if isinstance(c, crowd_E):
         legend = ['S', 'I', 'R', 'E']
     else:
@@ -46,6 +48,8 @@ def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=5.01, rate=0.7,
             animator.add(i, data)
 
         data_container.append(data)
+        target_ctr[i] = c.data.copy()
 
 
-    return data_container
+
+    return data_container, target_ctr

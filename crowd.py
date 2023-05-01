@@ -3,6 +3,8 @@ import numpy as np
 from numpy import random as rdm
 from matplotlib import pyplot as plt
 from scipy.stats import gaussian_kde
+##version1.2 ：调用动画模块
+from matplotlib.animation import FuncAnimation
 
 import utils
 
@@ -42,6 +44,11 @@ class crowd():
             self.data[0, :] = utils.normal_lu(self.size, lower=-500, upper=500, prop=3)
             self.data[1, :] = utils.normal_lu(self.size, lower=-500, upper=500, prop=3)
 
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(1, 1, 1)
+        self.ax.set_xlim(-500,500)
+        self.ax.set_ylim(-500,500)
+
     def getLoc(self, index):
         return self.data[0:2, index]
     
@@ -51,7 +58,7 @@ class crowd():
         """
         self.data[2, 0:(size)] = 1
 
-    def Forward(self, rate=0.5, dis=1.42): #注释：rate为感染率，dis为可能感染上的距离
+    def Forward(self, rate=0.3, dis=1.42): #注释：rate为感染率，dis为可能感染上的距离
         """
         在某天晚上进行清算，对当前位置的人判断是否感染，因为 I 只会感染 S 所以不考虑 R
         """
@@ -68,14 +75,14 @@ class crowd():
             for s in idx_S:
                 pos_s = self.getLoc(s)
                 dis_s = utils.distance(pos_i, pos_s)
-                ##version1.1：更新了传染概率随距离的影响，参数rate代表的初始传染概率，实际概率为随机数减去（1-距离与最大传染距离的比值）*（1-传染概率）*固定系数 进行判定
+                ##version1.1：更新了传染概率随距离的影响，参数rate代表的初始传染概率（最大距离感染概率），实际概率为随机数减去（1-距离与最大传染距离的比值）*（1-传染概率）*固定系数 进行判定
                 if dis_s >= dis:
                     ## 如果这两个人足够远则无事发生
                     continue
                 else:
                     ## 否则看命
                     prob = rdm.rand(1)
-                    if  prob - (1 - dis_s/dis) * (1-rate) *0.8 > rate:
+                    if  prob - (1 - dis_s/dis) * (1-rate) *0.3 > rate:
                         ## 如果命好就无事发生
                         continue
                     else:
@@ -89,7 +96,7 @@ class crowd():
             ## 连续情形下的移动，则随机分配位置
             ## version 1.1: 修改了随机移动机制，现在每次移动的距离服从二维正态分布，不会全体随机分配
             for i in range(2):
-                self.data[i, :] = self.data[i, :] + utils.normal_lu(self.size, lower=-10, upper=10, prop=2) 
+                self.data[i, :] = self.data[i, :] + utils.normal_lu(self.size, lower=-25, upper=25, prop=2) 
                 self.data[i, :] [self.data[i, :] > 500] = 1000 - self.data[i, :] [self.data[i, :] > 500]
                 self.data[i, :] [self.data[i, :] < -500] = - 1000 - self.data[i, :] [self.data[i, :] < -500] 
         if self.mod == 'dis':
@@ -123,7 +130,7 @@ class crowd():
         idx = z.argsort()
         x, y, z = x[idx], y[idx], z[idx]
 
-        fig, ax = plt.subplots()
+        #fig, ax = plt.subplots()
         plt.scatter(x, y,c=z, s=20,cmap='Spectral') # c表示标记的颜色
         plt.colorbar()
 
@@ -144,3 +151,60 @@ class crowd():
         idx_1 = np.argwhere(self.data[2,:] == 1).squeeze().size
         idx_2 = np.argwhere(self.data[2,:] == 2).squeeze().size
         return idx_0, idx_1, idx_2
+    
+    ##version1.2:更新动画模块绘制热力图
+    def animatedVisualize(self,targets):
+
+        image = self.ax.scatter([], [], c=[], s=20,cmap='Spectral')
+        self.fig.colorbar(plt.cm.ScalarMappable(cmap='Spectral'), ax=self.ax)
+
+        anima = FuncAnimation(fig= self.fig, func= self.update_anima, init_func= self.init_anima, frames = targets.values(), interval = 100)
+
+        anima.save("animationVis.gif", fps=10, writer="imagemagick")
+
+    def init_anima(self):
+        image = self.ax.scatter([], [], c=[], s=20,cmap='Spectral')
+        return image
+
+    def update_anima(self,target):
+        x = target[0,:]
+        y = target[1,:]
+        xy = np.vstack([x,y])
+        z = gaussian_kde(xy)(xy)
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+        self.ax.cla()
+
+        image = self.ax.scatter(x, y,c=z, s=20,cmap='Spectral')
+
+        return image
+    ##version1.2:更新动画模块绘制热力图结束
+
+
+    ##version1.3:更新动画模块绘制感染者与康复者的图像
+    def animatedSIR(self,targets):
+
+        image = self.ax.scatter([],[], c=[], s=2 )
+        anima = FuncAnimation(fig= self.fig, func= self.update_anima2, init_func= self.init_anima2, frames = targets.values(), interval = 100)
+
+        anima.save("animationSIR.gif", fps=10, writer="imagemagick")      
+
+    def init_anima2(self):
+        
+        image = self.ax.scatter([],[], c=[], s=2 )
+        return image
+    def update_anima2(self,target):
+        idy_0 = np.argwhere(target[2,:] == 0).squeeze()
+        idy_1 = np.argwhere(target[2,:] == 1).squeeze()
+        idy_2 = np.argwhere(target[2,:] == 2).squeeze()
+        self.ax.cla()
+
+        image = self.ax.scatter(target[0, idy_0], target[1, idy_0], c='gold',s=2, label = 'S')
+        image = self.ax.scatter(target[0, idy_1], target[1, idy_1], c='brown',s=2, label = 'I')
+        image = self.ax.scatter(target[0, idy_2], target[1, idy_2], c='darkorange',s=2, label = 'R')
+        self.ax.legend()
+
+        return image
+    ##version1.3:更新动画模块绘制感染者与康复者的图像结束
+
