@@ -3,6 +3,7 @@ import numpy.random as rdm
 import tools as d2l
 from crowd import crowd
 from crowd_E import crowd_E
+from crowd_Companies import crowd_C
 
 
 def normal_lu(size, lower, upper, prop=4):
@@ -23,7 +24,7 @@ def distance(p1, p2):
     """
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=5.01, rate=0.5, 
+def Process(c:'crowd|crowd_E|crowd_C', days:int=50, init=100, dis=5.01, rate=0.5, 
             Animator=False):
     data_container = []
     ## version1.2:target_ctr保存的是每天的c的所有data，targer_ctr[i]为调取第i+1天的数据组 i=0~49
@@ -39,7 +40,10 @@ def Process(c:'crowd|crowd_E', days:int=50, init=100, dis=5.01, rate=0.5,
     c.initI(init)
     for i in range(days):
         #print(i)
-        c.Move()
+        if isinstance(c, crowd_C): ##version2.0:如果有公司时，进行的是输入天数的移动函数
+            c.Move(i)
+        else:
+            c.Move()
         c.Forward(rate=rate, dis=dis)
         if c.process == 1:##version1.1：没有感染者后就停下
             break

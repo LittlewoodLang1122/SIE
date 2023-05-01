@@ -72,21 +72,22 @@ class crowd():
         for i in idx_I:
             ## 这里 i 是这个感染者的编号
             pos_i = self.getLoc(i)
-            for s in idx_S:
-                pos_s = self.getLoc(s)
-                dis_s = utils.distance(pos_i, pos_s)
-                ##version1.1：更新了传染概率随距离的影响，参数rate代表的初始传染概率（最大距离感染概率），实际概率为随机数减去（1-距离与最大传染距离的比值）*（1-传染概率）*固定系数 进行判定
-                if dis_s >= dis:
-                    ## 如果这两个人足够远则无事发生
-                    continue
-                else:
-                    ## 否则看命
-                    prob = rdm.rand(1)
-                    if  prob - (1 - dis_s/dis) * (1-rate) *0.3 > rate:
-                        ## 如果命好就无事发生
+            if idx_S.size >1: ##version2.0:如果没有未感染者就不考虑传染问题
+                for s in idx_S:
+                    pos_s = self.getLoc(s)
+                    dis_s = utils.distance(pos_i, pos_s)
+                    ##version1.1：更新了传染概率随距离的影响，参数rate代表的初始传染概率（最大距离感染概率），实际概率为随机数减去（1-距离与最大传染距离的比值）*（1-传染概率）*固定系数 进行判定
+                    if dis_s >= dis:
+                        ## 如果这两个人足够远则无事发生
                         continue
                     else:
-                        self.data[2,s] = 1
+                        ## 否则看命
+                        prob = rdm.rand(1)
+                        if  prob - (1 - dis_s/dis) * (1-rate) *0.3 > rate:
+                            ## 如果命好就无事发生
+                            continue
+                        else:
+                            self.data[2,s] = 1
 
     def Move(self):
         """
